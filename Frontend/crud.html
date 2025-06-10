@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Administrador - TiendaOnline</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-storage-compat.js"></script>
+ <script>
+    const firebaseConfig = {
+     apiKey: "AIzaSyD_BWHYqKLH10TH2eJBW-XnfI_dadfl1qw",
+  authDomain: "tiendalaravel.firebaseapp.com",
+  projectId: "tiendalaravel",
+  storageBucket: "tiendalaravel.firebasestorage.app",
+  messagingSenderId: "719048425175",
+  appId: "1:719048425175:web:a027e7a1aca80eb24c3a92",
+  measurementId: "G-XYSMM35XE8"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</head>
+<body class="bg-gradient-to-b from-black via-blue-900 to-blue-700 text-blue-100 min-h-screen">
+    <script>
+        if (!localStorage.getItem('authToken') || localStorage.getItem('rol') !== 'admin') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <a href="indexadmin.html" class="inline-block mb-4 bg-gradient-to-r from-black via-blue-900 to-blue-700 text-blue-200 font-bold py-2 px-4 rounded transition hover:text-cyan-300 hover:bg-blue-900 shadow-lg">&larr; Volver al panel admin</a>
+    <div class="max-w-xl mx-auto mt-10 bg-gradient-to-br from-black via-blue-900 to-blue-700 p-8 rounded-xl shadow-lg">
+        <h2 class="text-3xl font-bold mb-6 text-center text-blue-200 drop-shadow">Agregar Nuevo Producto</h2>
+        <form id="form-producto" class="space-y-4">
+            <div>
+                <label class="block font-semibold mb-1 text-blue-300">Título</label>
+                <input type="text" id="titulo" class="w-full border border-blue-700 bg-black/60 text-blue-100 rounded-lg px-3 py-2 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400 placeholder-blue-400" required />
+            </div>
+            <div>
+                <label class="block font-semibold mb-1 text-blue-300">Descripción</label>
+                <textarea id="descripcion" class="w-full border border-blue-700 bg-black/60 text-blue-100 rounded-lg px-3 py-2 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400 placeholder-blue-400" required></textarea>
+            </div>
+            <div>
+                <label class="block font-semibold mb-1 text-blue-300">Precio</label>
+                <input type="number" id="precio" class="w-full border border-blue-700 bg-black/60 text-blue-100 rounded-lg px-3 py-2 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400 placeholder-blue-400" min="0" step="0.01" required />
+            </div>
+            <div>
+                <label class="block font-semibold mb-1 text-blue-300">Stock</label>
+                <input type="number" id="stock" class="w-full border border-blue-700 bg-black/60 text-blue-100 rounded-lg px-3 py-2 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400 placeholder-blue-400" min="0" step="1" required />
+            </div>
+            <div>
+                <label class="block font-semibold mb-1 text-blue-300">Imagen</label>
+                <input type="file" id="imagen" accept="image/*" class="w-full text-blue-100" required />
+                <progress id="progress" value="0" max="100" class="w-full mt-2 hidden"></progress>
+            </div>
+            <div>
+                <label class="block font-semibold mb-1 text-blue-300">Categorías</label>
+                <select id="categoria" class="w-full border border-blue-700 bg-black/60 text-blue-100 rounded-lg px-3 py-2 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400" multiple required></select>
+                <small class="text-blue-400">Ctrl+Click para seleccionar varias</small>
+            </div>
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-800 to-black text-blue-100 py-2 rounded-lg hover:bg-blue-900 hover:text-cyan-300 transition shadow-lg">Guardar Producto</button>
+        </form>
+        <div id="form-mensaje" class="mt-4 text-center"></div>
+    </div>
+    <script>
+    // Cargar categorías en el select
+    document.addEventListener('DOMContentLoaded', async () => {
+        const select = document.getElementById('categoria');
+        try {
+            const res = await fetch('http://127.0.0.1:8000/api/categoria');
+            const categorias = await res.json();
+            categorias.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.nombre;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            select.innerHTML = '<option>Error al cargar categorías</option>';
+        }
+    });
+    // Subir imagen a Firebase y guardar producto
+    document.getElementById('form-producto').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const mensaje = document.getElementById('form-mensaje');
+        mensaje.textContent = '';
+        const titulo = document.getElementById('titulo').value;
+        const descripcion = document.getElementById('descripcion').value;
+        const precio = document.getElementById('precio').value;
+        const stock = document.getElementById('stock').value;
+        const categoriaSelect = document.getElementById('categoria');
+        const categorias = Array.from(categoriaSelect.selectedOptions).map(opt => opt.value);
+        const imagenInput = document.getElementById('imagen');
+        const file = imagenInput.files[0];
+        if (!file) { mensaje.textContent = 'Selecciona una imagen.'; return; }
+        const progress = document.getElementById('progress');
+        progress.classList.remove('hidden');
+        const storageRef = firebase.storage().ref('productosBenja/' + Date.now() + '_' + file.name);
+        const uploadTask = storageRef.put(file);
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                progress.value = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            },
+            (error) => {
+                mensaje.textContent = 'Error al subir imagen.';
+                progress.classList.add('hidden');
+            },
+            async () => {
+                const url = await uploadTask.snapshot.ref.getDownloadURL();
+                // Enviar datos a la API
+                try {
+                    const res = await fetch('http://127.0.0.1:8000/api/productos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                        },
+                        body: JSON.stringify({
+                            titulo,
+                            descripcion,
+                            precio,
+                            stock,
+                            imagen: url,
+                            categoria: categorias
+                        })
+                    });
+                    if (res.ok) {
+                        mensaje.textContent = 'Producto agregado correctamente.';
+                        mensaje.className = 'text-green-400 mt-4';
+                        document.getElementById('form-producto').reset();
+                        progress.value = 0;
+                        progress.classList.add('hidden');
+                    } else {
+                        const errorData = await res.json().catch(() => ({}));
+                        mensaje.textContent = errorData.message || 'Error al guardar el producto.';
+                        mensaje.className = 'text-red-400 mt-4';
+                        progress.classList.add('hidden');
+                    }
+                } catch (err) {
+                    mensaje.textContent = 'Error al guardar el producto.';
+                    mensaje.className = 'text-red-400 mt-4';
+                    progress.classList.add('hidden');
+                }
+            }
+        );
+    });
+    </script>
+</body>
+</html>

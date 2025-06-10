@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TiendaOnline</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-black-900">
+    <script>
+        // Redirección automática según el rol
+        document.addEventListener('DOMContentLoaded', function() {
+            const rol = localStorage.getItem('rol');
+            if (rol === 'admin') {
+                window.location.href = 'indexadmin.html';
+            }
+        });
+    </script>
+
+    <header class="flex justify-between items-center m-8">
+        <h1 class="text-5xl font-bold text-red-900">Tienda Online</h1>
+        <nav id="menu" class="hidden md:flex md:items-center md:space-x-4">
+            <ul class="flex space-x-4">
+                <li><a href="index.html" class="text-gray-900 hover:text-red-500">Inicio</a></li>
+                <li><a href="contacto.html" class="text-gray-900 hover:text-red-500">Contacto</a></li>
+            </ul>
+            <button onclick="logout()"
+                class="ml-6 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                Cerrar sesión
+            </button>
+            <script>
+                function logout() {
+                    const token = localStorage.getItem('authToken');
+                    if (token) {
+                        fetch('http://127.0.0.1:8000/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + token
+                            }
+                        })
+                        .finally(() => {
+                            localStorage.removeItem('authToken');
+                            localStorage.removeItem('rol');
+                            window.location.href = 'login.html';
+                        });
+                    } else {
+                        window.location.href = 'login.html';
+                    }
+                }
+            </script>
+        </nav>
+    </header>
+    <main class="flex justify-center items-center py-8 mb-9">
+        <section>
+            <div class="text-center">
+                <h2 class="text-6xl font-bold py-6">Catálogo de Productos</h2>
+                <p class="text-3xl text-gray-600 font-verdana">Explora nuestra seleccion de productos disponibles</p>
+            </div>
+        </section>
+    </main>
+
+    <main>
+        <div id="buscador" class="flex flex-col gap-8 items-center mb-8">
+            <input type="text" id="busqueda" placeholder="Buscar productos..."
+                class="w-full max-w-md border border-gray-300 rounded-lg px-4 py-2 w-1/2">
+
+            <div id="categorias" class="flex flex-wrap justify-center items-center">
+
+            </div>
+        </div>
+    </main>
+
+    <main>
+        <div id="productos" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ld:grid-cols-4 gap-4">
+
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-white py-4 mt-8 px-6">
+        <p>&copy; 2025 Benjamin Proaño</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
