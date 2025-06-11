@@ -14,62 +14,81 @@
     </style>
 </head>
 
-
-<body class="bg-gray-100 text-gray-900">
-    <header class="bg-white shadow px-6 py-4 text-xl font-bold text-red-600">
-        <a href="index.html" class="hover:underline">← Volver al catálogo</a>
+<body class="bg-gradient-to-b from-black via-blue-900 to-blue-700 text-blue-100 min-h-screen">
+    <header class="flex justify-between items-center m-8 bg-gradient-to-r from-black via-blue-900 to-blue-700 rounded-xl shadow-lg p-6">
+        <h1 class="text-5xl font-bold text-blue-300 drop-shadow-lg">Tienda Online</h1>
+        <nav id="menu" class="hidden md:flex md:items-center md:space-x-4">
+            <ul class="flex space-x-4">
+                <li><a href="index.html" class="text-blue-100 hover:text-blue-400 transition">Inicio</a></li>
+                <li><a href="contacto.html" class="text-blue-100 hover:text-blue-400 font-bold transition">Contacto</a>
+                </li>
+                <li><a href="crud.html" class="text-blue-100 hover:text-cyan-400 transition">Administrar productos</a>
+                </li>
+            </ul>
+            <button onclick="logout()"
+                class="ml-6 px-4 py-2 bg-gradient-to-r from-blue-800 to-black text-blue-100 rounded hover:bg-blue-900 hover:text-cyan-300 transition shadow-lg">
+                Cerrar sesión
+            </button>
+            <script>
+                function logout() {
+                    const token = localStorage.getItem('authToken');
+                    if (token) {
+                        fetch('http://127.0.0.1:8000/api/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + token
+                            }
+                        })
+                        .finally(() => {
+                            localStorage.removeItem('authToken');
+                            localStorage.removeItem('rol');
+                            window.location.href = 'login.html';
+                        });
+                    } else {
+                        window.location.href = 'login.html';
+                    }
+                }
+            </script>
+        </nav>
     </header>
-
-    <main class="container mx-auto mt-8 p-4">
-        <section class="mb-8">
-            <h2 class="text-3xl font-semibold mb-4">Contáctanos</h2>
-            <p class="text-gray-700">
-                Estamos aquí para ayudarte. Si tienes alguna pregunta, comentario o necesitas asistencia, no dudes en ponerte en contacto con nosotros.
-            </p>
-            <div class="mt-4">
-                <p class="font-semibold">Dirección:</p>
-                <p class="text-gray-900">
-                    Ricardo Izurieta del Castillo y Calle V
-                </p>
+    <main class="flex flex-col items-center justify-center py-8 mb-9">
+        <section class="mb-8 bg-black/60 rounded-xl shadow-lg p-8 w-full max-w-2xl">
+            <h2 class="text-4xl font-bold mb-4 text-blue-200 drop-shadow">Contáctanos</h2>
+            <p class="text-xl text-blue-400 mb-4">Tienda de productos de Kevin Vaca OwO</p>
+            <div class="mb-2">
+                <p class="font-semibold text-blue-300">Dirección:</p>
+                <p class="text-blue-100">Sangolqui, AV Atahualpa y 24 de Julio</p>
             </div>
-            <div class="mt-2">
-                <p class="font-semibold">Email:</p>
-                <p class="text-gray-900">
-                    benjaalex@hotmail.com
-                </p>
+            <div class="mb-2">
+                <p class="font-semibold text-blue-300">Email:</p>
+                <p class="text-blue-100">kevinvaca79@hotmail.com</p>
             </div>
-            <div class="mt-2">
-                <p class="font-semibold">Teléfono:</p>
-                <p class="text-gray-900">
-                    0963244275
-                </p>
+            <div class="mb-2">
+                <p class="font-semibold text-blue-300">Teléfono:</p>
+                <p class="text-blue-100">09000000</p>
             </div>
         </section>
-
-        <section id="map" class="shadow-lg rounded-lg"></section>
+        <section id="map" class="shadow-lg rounded-lg w-full max-w-2xl"></section>
     </main>
-
-    <footer class="text-center text-sm text-gray-400 py-4">
-        &copy; 2025 Benjamin Proaño Tienda Online
+    <footer class="bg-gradient-to-r from-black via-blue-900 to-blue-700 text-blue-200 py-4 mt-8 px-6 rounded-t-xl shadow-lg text-center">
+        &copy; Kevin Vaca OwO
     </footer>
-
     <script>
         function initMap() {
             const ubicacionTienda = { lat: -0.24605223690567338, lng: -78.4889285377053 };
-
             const map = new google.maps.Map(document.getElementById('map'), {
                 center: ubicacionTienda,
-                zoom: 16 
+                zoom: 16
             });
-
             const marker = new google.maps.Marker({
                 position: ubicacionTienda,
                 map: map,
-                title: 'Tienda Online Benjamin Proaño'  
+                title: 'Tienda Kevin Vaca OwO'
             });
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=************" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=************&callback=initMap" async defer></script>
 </body>
 
 </html>
