@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-storage-compat.js"></script>
  <script>
     const firebaseConfig = {
-     apiKey: "",//apikey
+     apiKey: "AIzaSyD_BWHYqKLH10TH2eJBW-XnfI_dadfl1qw",//apikey
   authDomain: "tiendalaravel.firebaseapp.com",
   projectId: "tiendalaravel",
   storageBucket: "tiendalaravel.firebasestorage.app",
@@ -94,7 +94,7 @@
         if (!file) { mensaje.textContent = 'Selecciona una imagen.'; return; }
         const progress = document.getElementById('progress');
         progress.classList.remove('hidden');
-        const storageRef = firebase.storage().ref('productosBenja/' + Date.now() + '_' + file.name);
+        const storageRef = firebase.storage().ref('productoSubido/' + Date.now() + '_' + file.name);
         const uploadTask = storageRef.put(file);
         uploadTask.on('state_changed', 
             (snapshot) => {
