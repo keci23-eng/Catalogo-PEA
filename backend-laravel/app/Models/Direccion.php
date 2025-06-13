@@ -11,9 +11,8 @@ class Direccion extends Model
         'user_id',
         'direccion',
         'ciudad',
-        'estado',
-        'codigo_postal',
-        'pais',
+        'provincia',
+        'telefono',
     ];
 
     public function user()

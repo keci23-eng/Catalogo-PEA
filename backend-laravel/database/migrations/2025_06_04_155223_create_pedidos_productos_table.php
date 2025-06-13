@@ -20,7 +20,7 @@ return new class extends Migration
                 ->constrained('productos')
                 ->onDelete('cascade');
             $table->integer('cantidad')->default(1);
-            $table->decimal('precio unitario', 10, 2);
+            $table->decimal('precio_unitario', 10, 2);
             $table->decimal('subtotal', 10, 2);
             $table->timestamps();
         });

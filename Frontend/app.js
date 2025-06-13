@@ -84,11 +84,45 @@ function mostrarProductos(productosAMostrar) {
                 <p class="text-blue-300 mb-2">${producto.descripcion}</p>
                 <p class="text-blue-400 font-bold mb-2">$${producto.precio}</p>
                 <p class="text-blue-400 mb-2">Stock: ${producto.stock}</p>
-                <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors duration-300">Agregar al carrito</button>
+                <button class="btn-agregar-carrito bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors duration-300" data-id="${producto.id}">Agregar al carrito</button>
                 <a href="detalle.html?id=${producto.id}" class="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-900 transition-colors duration-300 mt-2 block text-center">Detalles</a>
             `;
             contenedorProductos.appendChild(productoDiv);
         });
+        // Asignar eventos a los botones "Agregar al carrito"
+        document.querySelectorAll('.btn-agregar-carrito').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const productoId = this.getAttribute('data-id');
+                await agregarAlCarrito(productoId, 1);
+            });
+        });
+    }
+}
+
+// Función para agregar producto al carrito
+async function agregarAlCarrito(productoId, cantidad = 1) {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+        alert('Debes iniciar sesión para agregar productos al carrito');
+        return;
+    }
+    try {
+        const res = await fetch('http://127.0.0.1:8000/api/carrito/agregar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ producto_id: productoId, cantidad })
+        });
+        if (res.ok) {
+            mostrarToast('Producto agregado al carrito', 'success');
+        } else {
+            const data = await res.json().catch(() => ({}));
+            mostrarToast(data.message || 'Error al agregar al carrito', 'error');
+        }
+    } catch (e) {
+        mostrarToast('Error de conexión al agregar al carrito', 'error');
     }
 }
 
@@ -150,6 +184,22 @@ async function eliminarProducto(id, imagenUrl) {
     } catch (err) {
         alert('Error al eliminar el producto.');
     }
+}
+
+// Toast de notificación
+function mostrarToast(mensaje, tipo = 'success') {
+    let toast = document.getElementById('toast-msg');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-msg';
+        toast.className = 'fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow-lg text-lg font-bold';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = mensaje;
+    toast.className = 'fixed top-6 right-6 z-50 px-6 py-3 rounded-lg shadow-lg text-lg font-bold ' +
+        (tipo === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white');
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2200);
 }
 
 // Eventos

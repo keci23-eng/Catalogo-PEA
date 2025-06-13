@@ -22,8 +22,10 @@
                 <li><a href="index.html" class="text-blue-100 hover:text-blue-400 transition">Inicio</a></li>
                 <li><a href="contacto.html" class="text-blue-100 hover:text-blue-400 font-bold transition">Contacto</a>
                 </li>
-                <li><a href="crud.html" class="text-blue-100 hover:text-cyan-400 transition">Administrar productos</a>
-                </li>
+                <li id="admin-link" style="display:none;"><a href="crud.html"
+                        class="text-blue-100 hover:text-cyan-400 transition">Administrar productos</a></li>
+                <li id="carrito-link" style="display:none;"><a href="carrito.html"
+                        class="text-blue-100 hover:text-green-400 transition">Ver Carrito</a></li>
             </ul>
             <button onclick="logout()"
                 class="ml-6 px-4 py-2 bg-gradient-to-r from-blue-800 to-black text-blue-100 rounded hover:bg-blue-900 hover:text-cyan-300 transition shadow-lg">
@@ -49,6 +51,16 @@
                         window.location.href = 'login.html';
                     }
                 }
+                // Mostrar el link de admin y carrito segun el rol
+                document.addEventListener('DOMContentLoaded', function() {
+                    const rol = localStorage.getItem('rol');
+                    if (rol === 'admin') {
+                        document.getElementById('admin-link').style.display = '';
+                    }
+                    if (rol === 'cliente') {
+                        document.getElementById('carrito-link').style.display = '';
+                    }
+                });
             </script>
         </nav>
     </header>
@@ -58,11 +70,11 @@
             <p class="text-xl text-blue-400 mb-4">Tienda de productos de Kevin Vaca OwO</p>
             <div class="mb-2">
                 <p class="font-semibold text-blue-300">Dirección:</p>
-                <p class="text-blue-100">Sangolqui, AV Atahualpa y 24 de Julio</p>
+                <p class="text-blue-100">Sangolqui, AV Calderon y Garcia Moreno</p>
             </div>
             <div class="mb-2">
                 <p class="font-semibold text-blue-300">Email:</p>
-                <p class="text-blue-100">kevinvaca79@hotmail.com</p>
+                <p class="text-blue-100">kevin79@.com</p>
             </div>
             <div class="mb-2">
                 <p class="font-semibold text-blue-300">Teléfono:</p>
@@ -74,21 +86,7 @@
     <footer class="bg-gradient-to-r from-black via-blue-900 to-blue-700 text-blue-200 py-4 mt-8 px-6 rounded-t-xl shadow-lg text-center">
         &copy; Kevin Vaca OwO
     </footer>
-    <script>
-        function initMap() {
-            const ubicacionTienda = { lat: -0.24605223690567338, lng: -78.4889285377053 };
-            const map = new google.maps.Map(document.getElementById('map'), {
-                center: ubicacionTienda,
-                zoom: 16
-            });
-            const marker = new google.maps.Marker({
-                position: ubicacionTienda,
-                map: map,
-                title: 'Tienda Kevin Vaca OwO'
-            });
-        }
-    </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=************&callback=initMap" async defer></script>
+   
 </body>
 
 </html>

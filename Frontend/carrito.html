@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Carrito - TiendaOnline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-b from-black via-blue-900 to-blue-700 text-blue-100 min-h-screen">
+    <header class="flex justify-between items-center m-8 bg-gradient-to-r from-black via-blue-900 to-blue-700 rounded-xl shadow-lg p-6">
+        <h1 class="text-4xl font-bold text-blue-300 drop-shadow-lg">Mi Carrito</h1>
+        <nav>
+            <a href="index.html" class="text-blue-100 hover:text-blue-400 transition mr-4">Inicio</a>
+            <a href="contacto.html" class="text-blue-100 hover:text-blue-400 transition">Contacto</a>
+            <button onclick="logout()" class="ml-6 px-4 py-2 bg-gradient-to-r from-blue-800 to-black text-blue-100 rounded hover:bg-blue-900 hover:text-cyan-300 transition shadow-lg">Cerrar sesión</button>
+        </nav>
+    </header>
+    <main class="max-w-3xl mx-auto bg-black/60 rounded-xl shadow-lg p-8 mt-8">
+        <h2 class="text-3xl font-bold mb-6 text-blue-200 drop-shadow">Productos en tu carrito</h2>
+        <div id="carrito-contenido" class="mb-8"></div>
+        <div id="carrito-total" class="text-2xl font-bold text-green-400 mb-6"></div>
+        <button id="btn-comprar" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors duration-300 font-bold text-xl">Comprar</button>
+        <div id="carrito-mensaje" class="mt-6 text-lg"></div>
+        <hr class="my-8 border-blue-400/30">
+        <h3 class="text-2xl font-bold mb-4 text-blue-200">Mis pedidos recientes</h3>
+        <div id="mis-pedidos"></div>
+    </main>
+    <footer class="bg-gradient-to-r from-black via-blue-900 to-blue-700 text-blue-200 py-4 mt-8 px-6 rounded-t-xl shadow-lg text-center">
+        <p>&copy; Kevin Vaca OwO</p>
+    </footer>
+    <script src="carrito.js"></script>
+    <script>
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            fetch('http://127.0.0.1:8000/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            })
+            .finally(() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('rol');
+                window.location.href = 'login.html';
+            });
+        } else {
+            window.location.href = 'login.html';
+        }
+    }
+    </script>
+</body>
+</html>

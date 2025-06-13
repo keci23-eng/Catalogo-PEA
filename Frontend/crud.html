@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/11.9.0/firebase-storage-compat.js"></script>
  <script>
     const firebaseConfig = {
-     apiKey: "AIzaSyD_BWHYqKLH10TH2eJBW-XnfI_dadfl1qw",//apikey
+     apiKey: "",//apikey
   authDomain: "tiendalaravel.firebaseapp.com",
   projectId: "tiendalaravel",
   storageBucket: "tiendalaravel.firebasestorage.app",
@@ -57,7 +57,10 @@
                 <select id="categoria" class="w-full border border-blue-700 bg-black/60 text-blue-100 rounded-lg px-3 py-2 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400" multiple required></select>
                 <small class="text-blue-400">Ctrl+Click para seleccionar varias</small>
             </div>
-            <button type="submit" class="w-full bg-gradient-to-r from-blue-800 to-black text-blue-100 py-2 rounded-lg hover:bg-blue-900 hover:text-cyan-300 transition shadow-lg">Guardar Producto</button>
+            <div class="flex gap-2">
+                <button type="submit" id="btn-guardar" class="w-full bg-gradient-to-r from-blue-800 to-black text-blue-100 py-2 rounded-lg hover:bg-blue-900 hover:text-cyan-300 transition shadow-lg">Guardar Producto</button>
+                <button type="button" id="btn-editar" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-black py-2 rounded-lg hover:bg-yellow-600 transition shadow-lg hidden">Actualizar Producto</button>
+            </div>
         </form>
         <div id="form-mensaje" class="mt-4 text-center"></div>
     </div>
@@ -142,6 +145,368 @@
                 }
             }
         );
+    });
+    </script>
+    <div class="max-w-4xl mx-auto mt-10 bg-gradient-to-br from-black via-blue-900 to-blue-700 p-8 rounded-xl shadow-lg">
+        <h2 class="text-3xl font-bold mb-6 text-center text-blue-200 drop-shadow">Lista de Productos</h2>
+        <div id="productos-lista" class="overflow-x-auto"></div>
+    </div>
+    <script>
+    // CRUD: Mostrar productos, actualizar y eliminar
+    async function cargarProductos() {
+        const contenedor = document.getElementById('productos-lista');
+        contenedor.innerHTML = '<div class="text-blue-300">Cargando productos...</div>';
+        try {
+            const res = await fetch('http://127.0.0.1:8000/api/productos', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+            });
+            const productos = await res.json();
+            if (!Array.isArray(productos)) throw new Error('Error al cargar productos');
+            if (productos.length === 0) {
+                contenedor.innerHTML = '<div class="text-blue-400">No hay productos registrados.</div>';
+                return;
+            }
+            let tabla = `<table class='min-w-full text-blue-100'><thead><tr>
+                <th class='px-2 py-1'>ID</th><th class='px-2 py-1'>Título</th><th class='px-2 py-1'>Precio</th><th class='px-2 py-1'>Stock</th><th class='px-2 py-1'>Acciones</th></tr></thead><tbody>`;
+            productos.forEach(prod => {
+                tabla += `<tr>
+                    <td class='border px-2 py-1'>${prod.id}</td>
+                    <td class='border px-2 py-1'>${prod.titulo}</td>
+                    <td class='border px-2 py-1'>$${prod.precio}</td>
+                    <td class='border px-2 py-1'>${prod.stock}</td>
+                    <td class='border px-2 py-1'>
+                        <button class='bg-yellow-500 text-black px-2 py-1 rounded mr-2' onclick='editarProducto(${prod.id})'>Editar</button>
+                        <button class='bg-red-600 text-white px-2 py-1 rounded' onclick='eliminarProducto(${prod.id})'>Eliminar</button>
+                    </td>
+                </tr>`;
+            });
+            tabla += '</tbody></table>';
+            contenedor.innerHTML = tabla;
+        } catch (e) {
+            contenedor.innerHTML = '<div class="text-red-400">Error al cargar productos.</div>';
+        }
+    }
+    window.cargarProductos = cargarProductos;
+    document.addEventListener('DOMContentLoaded', cargarProductos);
+
+    // Eliminar producto
+    window.eliminarProducto = async function(id) {
+        if (!confirm('¿Seguro que deseas eliminar este producto?')) return;
+        try {
+            const res = await fetch(`http://127.0.0.1:8000/api/productos/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+            });
+            if (res.ok) {
+                cargarProductos();
+            } else {
+                alert('Error al eliminar producto.');
+            }
+        } catch (e) {
+            alert('Error al eliminar producto.');
+        }
+    }
+
+    // Editar producto (cargar datos en el formulario)
+    window.editarProducto = async function(id) {
+        try {
+            const res = await fetch(`http://127.0.0.1:8000/api/productos/${id}`, {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('authToken') }
+            });
+            const prod = await res.json();
+            document.getElementById('titulo').value = prod.titulo;
+            document.getElementById('descripcion').value = prod.descripcion;
+            document.getElementById('precio').value = prod.precio;
+            document.getElementById('stock').value = prod.stock;
+            // Seleccionar categorías
+            const categoriaSelect = document.getElementById('categoria');
+            Array.from(categoriaSelect.options).forEach(opt => {
+                opt.selected = prod.categorias && prod.categorias.some(cat => cat.id == opt.value);
+            });
+            // Guardar id en dataset para saber si es edición
+            document.getElementById('form-producto').dataset.editId = id;
+            toggleBotonesEdicion(true);
+        } catch (e) {
+            alert('Error al cargar producto para editar.');
+        }
+    }
+
+    // Cambia la visibilidad de los botones según si es edición o no
+    function toggleBotonesEdicion(esEdicion) {
+        document.getElementById('btn-guardar').classList.toggle('hidden', esEdicion);
+        document.getElementById('btn-editar').classList.toggle('hidden', !esEdicion);
+    }
+
+    // Modificar submit para actualizar si corresponde
+    document.getElementById('form-producto').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const mensaje = document.getElementById('form-mensaje');
+        mensaje.textContent = '';
+        const titulo = document.getElementById('titulo').value;
+        const descripcion = document.getElementById('descripcion').value;
+        const precio = document.getElementById('precio').value;
+        const stock = document.getElementById('stock').value;
+        const categoriaSelect = document.getElementById('categoria');
+        const categorias = Array.from(categoriaSelect.selectedOptions).map(opt => opt.value);
+        const imagenInput = document.getElementById('imagen');
+        const file = imagenInput.files[0];
+        const progress = document.getElementById('progress');
+        const editId = this.dataset.editId;
+        if (editId) {
+            // Si hay nueva imagen, subirla y actualizar con imagen
+            if (file) {
+                progress.classList.remove('hidden');
+                const storageRef = firebase.storage().ref('productoSubido/' + Date.now() + '_' + file.name);
+                const uploadTask = storageRef.put(file);
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        progress.value = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    },
+                    (error) => {
+                        mensaje.textContent = 'Error al subir imagen.';
+                        progress.classList.add('hidden');
+                    },
+                    async () => {
+                        const url = await uploadTask.snapshot.ref.getDownloadURL();
+                        try {
+                            const res = await fetch(`http://127.0.0.1:8000/api/productos/${editId}`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                            },
+                            body: JSON.stringify({
+                                titulo,
+                                descripcion,
+                                precio,
+                                stock,
+                                imagen: url,
+                                categoria: categorias
+                            })
+                        });
+                        if (res.ok) {
+                            mensaje.textContent = 'Producto actualizado correctamente.';
+                            mensaje.className = 'text-green-400 mt-4';
+                            this.reset();
+                            delete this.dataset.editId;
+                            cargarProductos();
+                            progress.classList.add('hidden');
+                            toggleBotonesEdicion(false);
+                        } else {
+                            const errorData = await res.json().catch(() => ({}));
+                            mensaje.textContent = errorData.message || 'Error al actualizar el producto.';
+                            mensaje.className = 'text-red-400 mt-4';
+                            progress.classList.add('hidden');
+                        }
+                    } catch (err) {
+                        mensaje.textContent = 'Error al actualizar el producto.';
+                        mensaje.className = 'text-red-400 mt-4';
+                        progress.classList.add('hidden');
+                    }
+                    });
+                return;
+            } else {
+                // Actualizar producto (sin cambiar imagen)
+                try {
+                    const res = await fetch(`http://127.0.0.1:8000/api/productos/${editId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                        },
+                        body: JSON.stringify({
+                            titulo,
+                            descripcion,
+                            precio,
+                            stock,
+                            categoria: categorias
+                        })
+                    });
+                    if (res.ok) {
+                        mensaje.textContent = 'Producto actualizado correctamente.';
+                        mensaje.className = 'text-green-400 mt-4';
+                        this.reset();
+                        delete this.dataset.editId;
+                        cargarProductos();
+                        progress.classList.add('hidden');
+                        toggleBotonesEdicion(false);
+                    } else {
+                        const errorData = await res.json().catch(() => ({}));
+                        mensaje.textContent = errorData.message || 'Error al actualizar el producto.';
+                        mensaje.className = 'text-red-400 mt-4';
+                        progress.classList.add('hidden');
+                    }
+                } catch (err) {
+                    mensaje.textContent = 'Error al actualizar el producto.';
+                    mensaje.className = 'text-red-400 mt-4';
+                    progress.classList.add('hidden');
+                }
+                return;
+            }
+        }
+        // Crear producto solo si no es edición
+        if (form.dataset.editId) return;
+        if (!file) { mensaje.textContent = 'Selecciona una imagen.'; return; }
+        progress.classList.remove('hidden');
+        const storageRef = firebase.storage().ref('productoSubido/' + Date.now() + '_' + file.name);
+        const uploadTask = storageRef.put(file);
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                progress.value = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            },
+            (error) => {
+                mensaje.textContent = 'Error al subir imagen.';
+                progress.classList.add('hidden');
+            },
+            async () => {
+                const url = await uploadTask.snapshot.ref.getDownloadURL();
+                // Enviar datos a la API
+                try {
+                    const res = await fetch('http://127.0.0.1:8000/api/productos', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                        },
+                        body: JSON.stringify({
+                            titulo,
+                            descripcion,
+                            precio,
+                            stock,
+                            imagen: url,
+                            categoria: categorias
+                        })
+                    });
+                    if (res.ok) {
+                        mensaje.textContent = 'Producto agregado correctamente.';
+                        mensaje.className = 'text-green-400 mt-4';
+                        document.getElementById('form-producto').reset();
+                        progress.value = 0;
+                        progress.classList.add('hidden');
+                    } else {
+                        const errorData = await res.json().catch(() => ({}));
+                        mensaje.textContent = errorData.message || 'Error al guardar el producto.';
+                        mensaje.className = 'text-red-400 mt-4';
+                        progress.classList.add('hidden');
+                    }
+                } catch (err) {
+                    mensaje.textContent = 'Error al guardar el producto.';
+                    mensaje.className = 'text-red-400 mt-4';
+                    progress.classList.add('hidden');
+                }
+            }
+        );
+    });
+    // Al resetear el formulario, volver a modo crear
+    document.getElementById('form-producto').addEventListener('reset', function() {
+        delete this.dataset.editId;
+        toggleBotonesEdicion(false);
+    });
+    document.getElementById('btn-editar').addEventListener('click', async function(e) {
+        e.preventDefault();
+        const form = document.getElementById('form-producto');
+        const mensaje = document.getElementById('form-mensaje');
+        mensaje.textContent = '';
+        const titulo = document.getElementById('titulo').value;
+        const descripcion = document.getElementById('descripcion').value;
+        const precio = document.getElementById('precio').value;
+        const stock = document.getElementById('stock').value;
+        const categoriaSelect = document.getElementById('categoria');
+        const categorias = Array.from(categoriaSelect.selectedOptions).map(opt => opt.value);
+        const imagenInput = document.getElementById('imagen');
+        const file = imagenInput.files[0];
+        const progress = document.getElementById('progress');
+        const editId = form.dataset.editId;
+        if (!editId) return;
+        // Si hay nueva imagen, subirla y actualizar con imagen
+        if (file && imagenInput.value !== '') {
+            progress.classList.remove('hidden');
+            const storageRef = firebase.storage().ref('productoSubido/' + Date.now() + '_' + file.name);
+            const uploadTask = storageRef.put(file);
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    progress.value = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                },
+                (error) => {
+                    mensaje.textContent = 'Error al subir imagen.';
+                    progress.classList.add('hidden');
+                },
+                async () => {
+                    const url = await uploadTask.snapshot.ref.getDownloadURL();
+                    try {
+                        const res = await fetch(`http://127.0.0.1:8000/api/productos/${editId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                            },
+                            body: JSON.stringify({
+                                titulo,
+                                descripcion,
+                                precio,
+                                stock,
+                                imagen: url,
+                                categoria: categorias
+                            })
+                        });
+                        if (res.ok) {
+                            mensaje.textContent = 'Producto actualizado correctamente.';
+                            mensaje.className = 'text-green-400 mt-4';
+                            form.reset();
+                            delete form.dataset.editId;
+                            cargarProductos();
+                            progress.classList.add('hidden');
+                            toggleBotonesEdicion(false);
+                        } else {
+                            const errorData = await res.json().catch(() => ({}));
+                            mensaje.textContent = errorData.message || 'Error al actualizar el producto.';
+                            mensaje.className = 'text-red-400 mt-4';
+                            progress.classList.add('hidden');
+                        }
+                    } catch (err) {
+                        mensaje.textContent = 'Error al actualizar el producto.';
+                        mensaje.className = 'text-red-400 mt-4';
+                        progress.classList.add('hidden');
+                    }
+                }
+            );
+        } else {
+            // Actualizar producto (sin cambiar imagen)
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/api/productos/${editId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                    },
+                    body: JSON.stringify({
+                        titulo,
+                        descripcion,
+                        precio,
+                        stock,
+                        categoria: categorias
+                    })
+                });
+                if (res.ok) {
+                    mensaje.textContent = 'Producto actualizado correctamente.';
+                    mensaje.className = 'text-green-400 mt-4';
+                    form.reset();
+                    delete form.dataset.editId;
+                    cargarProductos();
+                    progress.classList.add('hidden');
+                    toggleBotonesEdicion(false);
+                } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    mensaje.textContent = errorData.message || 'Error al actualizar el producto.';
+                    mensaje.className = 'text-red-400 mt-4';
+                    progress.classList.add('hidden');
+                }
+            } catch (err) {
+                mensaje.textContent = 'Error al actualizar el producto.';
+                mensaje.className = 'text-red-400 mt-4';
+                progress.classList.add('hidden');
+            }
+        }
     });
     </script>
 </body>

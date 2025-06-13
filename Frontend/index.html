@@ -5,11 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TiendaOnline</title>
-
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 text-black-900">
+<body class="bg-gradient-to-b from-black via-blue-900 to-blue-700 text-blue-100 min-h-screen">
     <script>
         // Redirección automática según el rol
         document.addEventListener('DOMContentLoaded', function() {
@@ -17,18 +16,22 @@
             if (rol === 'admin') {
                 window.location.href = 'indexadmin.html';
             }
+            if (rol === 'cliente') {
+                document.getElementById('carrito-link').style.display = '';
+            }
         });
     </script>
-
-    <header class="flex justify-between items-center m-8">
-        <h1 class="text-5xl font-bold text-red-900">Tienda Online</h1>
+    <header class="flex justify-between items-center m-8 bg-gradient-to-r from-black via-blue-900 to-blue-700 rounded-xl shadow-lg p-6">
+        <h1 class="text-5xl font-bold text-blue-300 drop-shadow-lg">Tienda Online</h1>
         <nav id="menu" class="hidden md:flex md:items-center md:space-x-4">
             <ul class="flex space-x-4">
-                <li><a href="index.html" class="text-gray-900 hover:text-red-500">Inicio</a></li>
-                <li><a href="contacto.html" class="text-gray-900 hover:text-red-500">Contacto</a></li>
+                <li><a href="index.html" class="text-blue-100 hover:text-blue-400 transition">Inicio</a></li>
+                <li><a href="contacto.html" class="text-blue-100 hover:text-blue-400 transition">Contacto</a></li>
+                <li id="carrito-link" style="display:none;"><a href="carrito.html"
+                        class="text-blue-100 hover:text-green-400 transition">Ver Carrito</a></li>
             </ul>
             <button onclick="logout()"
-                class="ml-6 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                class="ml-6 px-4 py-2 bg-gradient-to-r from-blue-800 to-black text-blue-100 rounded hover:bg-blue-900 hover:text-cyan-300 transition shadow-lg">
                 Cerrar sesión
             </button>
             <script>
@@ -57,33 +60,24 @@
     <main class="flex justify-center items-center py-8 mb-9">
         <section>
             <div class="text-center">
-                <h2 class="text-6xl font-bold py-6">Catálogo de Productos</h2>
-                <p class="text-3xl text-gray-600 font-verdana">Explora nuestra seleccion de productos disponibles</p>
+                <h2 class="text-6xl font-bold py-6 text-blue-200 drop-shadow">Catálogo de Productos</h2>
+                <p class="text-3xl text-blue-400 font-verdana">Explora nuestra selección de productos disponibles</p>
             </div>
         </section>
     </main>
-
     <main>
         <div id="buscador" class="flex flex-col gap-8 items-center mb-8">
             <input type="text" id="busqueda" placeholder="Buscar productos..."
-                class="w-full max-w-md border border-gray-300 rounded-lg px-4 py-2 w-1/2">
-
-            <div id="categorias" class="flex flex-wrap justify-center items-center">
-
-            </div>
+                class="w-full max-w-md border border-blue-700 bg-black/60 text-blue-100 rounded-lg px-4 py-2 w-1/2 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400 placeholder-blue-400">
+            <div id="categorias" class="flex flex-wrap justify-center items-center gap-2"></div>
         </div>
     </main>
-
     <main>
-        <div id="productos" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ld:grid-cols-4 gap-4">
-
-        </div>
+        <div id="productos" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4"></div>
     </main>
-
-    <footer class="bg-gray-900 text-white py-4 mt-8 px-6">
-        <p>&copy; Kevin Vaca OwO </p>
+    <footer class="bg-gradient-to-r from-black via-blue-900 to-blue-700 text-blue-200 py-4 mt-8 px-6 rounded-t-xl shadow-lg text-center">
+        <p>&copy; Kevin Vaca OwO</p>
     </footer>
-
     <script src="app.js"></script>
 </body>
 

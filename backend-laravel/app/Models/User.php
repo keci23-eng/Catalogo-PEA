@@ -43,8 +43,8 @@ class User extends Authenticatable
         return $this->hasMany(Pedidos::class, 'user_id');
     }
 
-    public function direccione(){
-        return $this->hasMany(Direcciones::class, 'user_id');
+    public function direcciones(){
+        return $this->hasMany(Direccion::class, 'user_id');
 }
 
     

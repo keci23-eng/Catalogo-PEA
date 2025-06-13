@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class PedidoProducto extends Model
 {
-    protected $table = 'pedido_producto';
+    protected $table = 'pedidos_productos';
 
     protected $fillable = [
         'pedido_id',
         'producto_id',
         'cantidad',
-        'precio',
+        'precio_unitario',
+        'subtotal',
     ];
 
     public function pedido()
